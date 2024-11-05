@@ -97,13 +97,19 @@ public class Router {
 
     public static void main(String[] args) {
         try {
-            Router router = new Router("192.168.1.1", "roteadores.txt");
+            Router router = new Router("10.132.241.219", "roteadores.txt");
             router.start();
 
-            // Exemplo de envio de mensagem de texto
-            router.messageSender.sendTextMessage("192.168.1.2", "Oi tudo bem?", "192.168.1.3");
-        } catch (IOException e) {
-            System.out.println("Failed to initialize router.");
+          // Defina os IPs de destino
+        List<String> destinationIPs = Arrays.asList("10.132.249.197");
+
+        // Envio da mesma mensagem para múltiplos IPs
+        for (String destinationIP : destinationIPs) {
+            router.messageSender.sendTextMessage(destinationIP, "Oi tudo bem?", destinationIP);
         }
+        
+    } catch (IOException e) {
+        System.out.println("Failed to initialize router.");
     }
+}
 }
