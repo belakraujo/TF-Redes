@@ -22,6 +22,7 @@ class MessageReceiver implements Runnable {
                 String message = new String(packet.getData(), 0, packet.getLength());
                 String senderIP = packet.getAddress().getHostAddress();
                 handleReceivedMessage(message, senderIP);
+                System.out.println("Recebido o Pacote");
             } catch (IOException e) {
                 System.out.println("Failed to receive message.");
             }

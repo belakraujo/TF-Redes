@@ -13,19 +13,27 @@ class MessageSender {
         this.ipAddress = ipAddress;
     }
 
-    // Envia uma mensagem de tabela de roteamento para todos os vizinhos
-    public void sendRoutingTable(Map<String, Route> routingTable, String[] neighbors) {
+    public void sendRoutingTable(Map<String, Route> routingTable, String[] neighbors, String ownIpAddress) {
         StringBuilder message = new StringBuilder();
+    
+        // Construindo a mensagem com o formato @IP-Destino-Métrica para cada rota, excluindo o próprio IP
         for (Route route : routingTable.values()) {
-            message.append("@").append(route.destinationIP).append("-").append(route.metric);
+            if (!route.destinationIP.equals(ownIpAddress)) { // Exclui o próprio IP do roteador
+                message.append("@").append(route.destinationIP).append("-").append(route.metric);
+            }
         }
-        
+    
+        // Log da mensagem para verificar o formato antes do envio
+        System.out.println("Routing table message to send (excluding own IP): " + message.toString());
+    
+        // Envia a mensagem completa para cada vizinho
         for (String neighbor : neighbors) {
             sendMessage(message.toString(), neighbor);
         }
     }
+    
+    
 
-    // Envia uma mensagem de texto para o destino específico
     public void sendTextMessage(String destinationIP, String text, String targetIP) {
         String message = "!" + ipAddress + ";" + targetIP + ";" + text;
         sendMessage(message, destinationIP);
@@ -37,6 +45,7 @@ class MessageSender {
             InetAddress address = InetAddress.getByName(destinationIP);
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, 9000);
             socket.send(packet);
+            System.out.println("Enviado o Pacote");
         } catch (IOException e) {
             System.out.println("Failed to send message to " + destinationIP);
         }
