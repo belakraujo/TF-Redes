@@ -33,14 +33,31 @@ public class Router {
         return neighbors;
     }
 
+    private void updateNeighborsFile(String newRouterIP) {
+        if (!neighbors.contains(newRouterIP)) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter("roteadores.txt", true))) {
+                writer.write(newRouterIP);
+                writer.newLine();
+                neighbors.add(newRouterIP); // Adiciona o novo IP à lista de vizinhos
+                System.out.println("roteadores.txt updated with new router IP: " + newRouterIP);
+            } catch (IOException e) {
+                System.out.println("Error updating roteadores.txt: " + e.getMessage());
+            }
+        }
+    }    
+
     public void start() {
+        // Anuncia o roteador para todos os vizinhos ao iniciar
+        messageSender.sendRouterAnnouncement(neighbors.toArray(new String[0]));
+    
+        // Inicia o envio periódico da tabela de roteamento e a verificação de rotas inativas
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
         scheduler.scheduleAtFixedRate(() -> messageSender.sendRoutingTable(routingTable, neighbors.toArray(new String[0]), ipAddress), 0, 15, TimeUnit.SECONDS);
         scheduler.scheduleAtFixedRate(this::checkInactiveRoutes, 0, 1, TimeUnit.SECONDS);
-
+    
         new Thread(new MessageReceiver(socket, this)).start();
     }
-
+    
     public void updateRoutingTable(String message, String senderIP) {
         String[] routes = message.split("@");
         boolean tableUpdated = false;
@@ -93,9 +110,20 @@ public class Router {
     } 
 
     public void addNewRouter(String newRouterIP) {
-        routingTable.put(newRouterIP, new Route(newRouterIP, 1, newRouterIP));
-        System.out.println("New router added: " + newRouterIP);
+        if (!routingTable.containsKey(newRouterIP)) {
+            routingTable.put(newRouterIP, new Route(newRouterIP, 1, newRouterIP));
+            System.out.println("Added new router with IP: " + newRouterIP + " to routing table.");
+            updateNeighborsFile(newRouterIP);
+            sendRoutingUpdateToNeighbors();
+        }
     }
+    
+    private void sendRoutingUpdateToNeighbors() {
+        messageSender.sendRoutingTable(routingTable, neighbors.toArray(new String[0]), ipAddress);
+    }
+    
+    
+    
 
     public void handleTextMessage(String message) {
         String[] parts = message.substring(1).split(";");

@@ -33,7 +33,8 @@ class MessageReceiver implements Runnable {
         if (message.startsWith("@")) {
             router.updateRoutingTable(message, senderIP);
         } else if (message.startsWith("*")) {
-            router.addNewRouter(senderIP);
+            String newRouterIP = message.substring(1); // Extrai o IP do novo roteador
+            router.addNewRouter(newRouterIP);
         } else if (message.startsWith("!")) {
             router.handleTextMessage(message);
         }
