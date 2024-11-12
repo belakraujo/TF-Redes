@@ -114,11 +114,11 @@ public class Router {
             routingTable.put(newRouterIP, new Route(newRouterIP, 1, newRouterIP));
             System.out.println("Added new router with IP: " + newRouterIP + " to routing table.");
             updateNeighborsFile(newRouterIP);
-            sendRoutingUpdateToNeighbors();
+            sendRoutingUpdateToNeighbors(); // Propaga a tabela atualizada
         }
     }
     
-    private void sendRoutingUpdateToNeighbors() {
+    void sendRoutingUpdateToNeighbors() {
         messageSender.sendRoutingTable(routingTable, neighbors.toArray(new String[0]), ipAddress);
     }
 
@@ -188,10 +188,6 @@ public class Router {
             if (timeElapsed > 35) {
                 System.out.println("Route to " + destinationIP + " removed due to inactivity of next hop: " + route.outputIP);
                 iterator.remove();
-            } else {
-                // Exibe o tempo restante até a rota ser removida
-                System.out.println("Route to " + destinationIP + " via " + route.outputIP +
-                        " is active. Time remaining until removal: " + timeRemaining + " seconds.");
             }
         }
     }

@@ -35,8 +35,10 @@ class MessageReceiver implements Runnable {
         } else if (message.startsWith("*")) {
             String newRouterIP = message.substring(1); // Extrai o IP do novo roteador
             router.addNewRouter(newRouterIP);
+            router.sendRoutingUpdateToNeighbors(); // Envia a tabela atualizada para todos os vizinhos
         } else if (message.startsWith("!")) {
             router.handleTextMessage(message);
         }
     }
+    
 }
