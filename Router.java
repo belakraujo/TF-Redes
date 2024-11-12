@@ -16,7 +16,7 @@ public class Router {
         this.neighbors = loadNeighbors(configFilePath);
         this.socket = new DatagramSocket(9000);
         this.messageSender = new MessageSender(socket, ipAddress);
-
+    
         for (String neighbor : neighbors) {
             routingTable.put(neighbor, new Route(neighbor, 1, neighbor));
         }
@@ -121,21 +121,54 @@ public class Router {
     private void sendRoutingUpdateToNeighbors() {
         messageSender.sendRoutingTable(routingTable, neighbors.toArray(new String[0]), ipAddress);
     }
-    
-    
-    
 
-    public void handleTextMessage(String message) {
-        String[] parts = message.substring(1).split(";");
+    public void processUserMessage(String message) {
+        // Verifica se a mensagem está no formato correto
+        if (!message.startsWith("!")) {
+            System.out.println("Formato de mensagem inválido. Deve começar com '!'");
+            return;
+        }
+    
+        // Divide a mensagem em suas partes
+        String[] parts = message.substring(1).split(";", 3); // Limita o split para evitar problemas com ';' na mensagem
+        if (parts.length < 3) {
+            System.out.println("Formato de mensagem inválido. Deve seguir o formato !<ip_origem>;<ip_destino>;<mensagem>");
+            return;
+        }
+    
         String originIP = parts[0];
         String destinationIP = parts[1];
         String text = parts[2];
+    
+        // Envia a mensagem usando a tabela de roteamento
+        sendTextMessage(originIP, destinationIP, text);
+    }
 
+
+    public void handleTextMessage(String message) {
+        String[] parts = message.substring(1).split(";", 3); // Limita o split para evitar problemas com ';' na mensagem
+        String originIP = parts[0];
+        String destinationIP = parts[1];
+        String text = parts[2];
+    
         if (destinationIP.equals(ipAddress)) {
-            System.out.println("Message received from " + originIP + ": " + text);
+            System.out.println("Mensagem recebida:");
+            System.out.println("Origem: " + originIP);
+            System.out.println("Destino: " + destinationIP);
+            System.out.println("Texto: " + text);
+            System.out.println("A mensagem chegou ao destino.");
         } else {
-            System.out.println("Forwarding message from " + originIP + " to " + destinationIP);
-            messageSender.sendTextMessage(routingTable.get(destinationIP).outputIP, text, destinationIP);
+            System.out.println("Encaminhando mensagem:");
+            System.out.println("Origem: " + originIP);
+            System.out.println("Destino: " + destinationIP);
+            System.out.println("Texto: " + text);
+            Route route = routingTable.get(destinationIP);
+            if (route != null) {
+                // Encaminha a mensagem para o próximo salto
+                messageSender.sendTextMessage(route.outputIP, text, destinationIP);
+            } else {
+                System.out.println("Nenhuma rota encontrada para " + destinationIP + ". Não foi possível encaminhar a mensagem.");
+            }
         }
     }
 
@@ -163,20 +196,34 @@ public class Router {
         }
     }
     
-
+    public void sendTextMessage(String originIP, String destinationIP, String text) {
+        Route route = routingTable.get(destinationIP);
+        if (route != null) {
+            // Envia a mensagem para o próximo salto
+            messageSender.sendTextMessage( originIP, destinationIP, text);
+            System.out.println("Mensagem enviada de " + originIP + " para " + destinationIP + " via " + route.outputIP);
+        } else {
+            System.out.println("Nenhuma rota encontrada para " + destinationIP);
+        }
+    }
+    
     public static void main(String[] args) {
         try {
-            Router router = new Router("172.20.10.10", "roteadores.txt");
+            // Verifica se o IP foi fornecido como argumento
+            if (args.length < 1) {
+                System.out.println("Uso: java Router <seu_ip>");
+                return;
+            }
+    
+            String ownIP = args[0];
+            Router router = new Router(ownIP, "roteadores.txt");
             router.start();
     
-            // Envio de uma mensagem de texto para cada vizinho carregado do arquivo roteadores.txt
-            for (String neighborIP : router.neighbors) {
-                router.messageSender.sendTextMessage(neighborIP, "Oi tudo bem?", neighborIP);
-            }
-            
+            // Inicia a thread para lidar com a entrada do usuário
+            new Thread(new UserInputHandler(router)).start();
+    
         } catch (IOException e) {
             System.out.println("Failed to initialize router.");
         }
     }
-    
 }
