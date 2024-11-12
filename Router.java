@@ -164,8 +164,8 @@ public class Router {
             System.out.println("Texto: " + text);
             Route route = routingTable.get(destinationIP);
             if (route != null) {
-                // Encaminha a mensagem para o próximo salto
-                messageSender.sendTextMessage(route.outputIP, text, destinationIP);
+                // Encaminha a mensagem para o próximo salto com os parâmetros na ordem correta
+                messageSender.sendTextMessage(route.outputIP, originIP, destinationIP, text);
             } else {
                 System.out.println("Nenhuma rota encontrada para " + destinationIP + ". Não foi possível encaminhar a mensagem.");
             }
@@ -200,7 +200,7 @@ public class Router {
         Route route = routingTable.get(destinationIP);
         if (route != null) {
             // Envia a mensagem para o próximo salto
-            messageSender.sendTextMessage( originIP, destinationIP, text);
+            messageSender.sendTextMessage(route.outputIP, originIP, destinationIP, text);
             System.out.println("Mensagem enviada de " + originIP + " para " + destinationIP + " via " + route.outputIP);
         } else {
             System.out.println("Nenhuma rota encontrada para " + destinationIP);

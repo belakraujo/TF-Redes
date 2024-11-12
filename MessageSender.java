@@ -31,10 +31,12 @@ class MessageSender {
         }
     }
 
-    public void sendTextMessage(String destinationIP,  String targetIP, String text) {
-        String message = "!" + ipAddress + ";" + targetIP + ";" + text;
-        sendMessage(message, destinationIP);
-    }    
+    public void sendTextMessage(String nextHopIP, String originIP, String destinationIP, String text) {
+        // Formata a mensagem de acordo com o esperado
+        String message = "!" + originIP + ";" + destinationIP + ";" + text;
+        sendMessage(message, nextHopIP);
+    }
+       
 
     private void sendMessage(String message, String destinationIP) {
         try {
