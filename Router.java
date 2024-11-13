@@ -57,6 +57,9 @@ public class Router {
     }
     
     public void updateRoutingTable(String message, String senderIP) {
+
+        System.out.println("Tabela recebida do vizinho " + senderIP);
+
         String[] routes = message.split("@");
         boolean tableUpdated = false;
         Set<String> receivedDestinations = new HashSet<>(); 
