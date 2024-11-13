@@ -4,6 +4,6 @@ javac *.java
 
 Após isso, colocar: 
 
-java Router *Colocar seu IP*
+java Router *>Colocar seu IP aqui<*
 
 Depois disso irá funcionar!
