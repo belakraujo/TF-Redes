@@ -18,7 +18,6 @@ public class UserInputHandler implements Runnable {
                 System.exit(0);
             }
 
-            // Envia a mensagem diretamente para o roteador processar
             router.processUserMessage(inputMessage);
         }
     }

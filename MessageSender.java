@@ -13,18 +13,16 @@ class MessageSender {
         this.ipAddress = ipAddress;
     }
 
-    // Envia uma mensagem de tabela de roteamento para todos os vizinhos, excluindo
-    // o próprio IP do roteador
     public void sendRoutingTable(Map<String, Route> routingTable, String[] neighbors, String ownIpAddress) {
         StringBuilder message = new StringBuilder();
     
         for (Route route : routingTable.values()) {
-            if (!route.destinationIP.equals(ownIpAddress)) { // Exclui o próprio IP do roteador
+            if (!route.destinationIP.equals(ownIpAddress)) { 
                 message.append("@").append(route.destinationIP).append("-").append(route.metric);
             }
         }
     
-        System.out.println("Routing table message to send (excluding own IP): " + message.toString());
+        System.out.println("Tabela sendo enviada: " + message.toString());
     
         for (String neighbor : neighbors) {
             sendMessage(message.toString(), neighbor);
@@ -32,7 +30,6 @@ class MessageSender {
     }
 
     public void sendTextMessage(String nextHopIP, String originIP, String destinationIP, String text) {
-        // Formata a mensagem de acordo com o esperado
         String message = "!" + originIP + ";" + destinationIP + ";" + text;
         sendMessage(message, nextHopIP);
     }
@@ -46,17 +43,17 @@ class MessageSender {
             socket.send(packet);
             System.out.println("Enviado o Pacote");
         } catch (IOException e) {
-            System.out.println("Failed to send message to " + destinationIP);
+            System.out.println("Falha ao enviar a mensagem para " + destinationIP);
         }
     }
 
     public void sendRouterAnnouncement(String[] neighbors) {
-        String announcementMessage = "*" + ipAddress; // Mensagem no formato *IP_do_Roteador
+        String announcementMessage = "*" + ipAddress; 
     
         for (String neighbor : neighbors) {
             sendMessage(announcementMessage, neighbor);
         }
     
-        System.out.println("Router announcement sent to neighbors: " + announcementMessage);
+        System.out.println("Anuncio da rota enviada pra os vizinhos: " + announcementMessage);
     }    
 }

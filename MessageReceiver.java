@@ -1,8 +1,6 @@
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.io.IOException;
-import java.util.Map;
-
 class MessageReceiver implements Runnable {
     private DatagramSocket socket;
     private Router router;
@@ -24,7 +22,7 @@ class MessageReceiver implements Runnable {
                 handleReceivedMessage(message, senderIP);
                 System.out.println("Recebido o Pacote");
             } catch (IOException e) {
-                System.out.println("Failed to receive message.");
+                System.out.println("Falha ao receber o pacote.");
             }
         }
     }
@@ -33,9 +31,9 @@ class MessageReceiver implements Runnable {
         if (message.startsWith("@")) {
             router.updateRoutingTable(message, senderIP);
         } else if (message.startsWith("*")) {
-            String newRouterIP = message.substring(1); // Extrai o IP do novo roteador
+            String newRouterIP = message.substring(1); 
             router.addNewRouter(newRouterIP);
-            router.sendRoutingUpdateToNeighbors(); // Envia a tabela atualizada para todos os vizinhos
+            router.sendRoutingUpdateToNeighbors();
         } else if (message.startsWith("!")) {
             router.handleTextMessage(message);
         }

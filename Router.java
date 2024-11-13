@@ -38,19 +38,17 @@ public class Router {
             try (BufferedWriter writer = new BufferedWriter(new FileWriter("roteadores.txt", true))) {
                 writer.write(newRouterIP);
                 writer.newLine();
-                neighbors.add(newRouterIP); // Adiciona o novo IP à lista de vizinhos
-                System.out.println("roteadores.txt updated with new router IP: " + newRouterIP);
+                neighbors.add(newRouterIP);
+                System.out.println("roteadores.txt updated como IP do novo roteador: " + newRouterIP);
             } catch (IOException e) {
-                System.out.println("Error updating roteadores.txt: " + e.getMessage());
+                System.out.println("Erro updating roteadores.txt: " + e.getMessage());
             }
         }
     }    
 
     public void start() {
-        // Anuncia o roteador para todos os vizinhos ao iniciar
         messageSender.sendRouterAnnouncement(neighbors.toArray(new String[0]));
     
-        // Inicia o envio periódico da tabela de roteamento e a verificação de rotas inativas
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
         scheduler.scheduleAtFixedRate(() -> messageSender.sendRoutingTable(routingTable, neighbors.toArray(new String[0]), ipAddress), 0, 15, TimeUnit.SECONDS);
         scheduler.scheduleAtFixedRate(this::checkInactiveRoutes, 0, 1, TimeUnit.SECONDS);
@@ -61,50 +59,43 @@ public class Router {
     public void updateRoutingTable(String message, String senderIP) {
         String[] routes = message.split("@");
         boolean tableUpdated = false;
-        Set<String> receivedDestinations = new HashSet<>(); // Para rastrear os IPs recebidos
+        Set<String> receivedDestinations = new HashSet<>(); 
     
-        // Processa cada rota recebida
         for (String routeInfo : routes) {
             if (routeInfo.isEmpty()) continue;
     
             String[] parts = routeInfo.split("-");
             String destinationIP = parts[0];
-            int receivedMetric = Integer.parseInt(parts[1]) + 1; // Incrementa a métrica
+            int receivedMetric = Integer.parseInt(parts[1]) + 1;
     
-            // Adiciona o destino ao conjunto de IPs recebidos
             receivedDestinations.add(destinationIP);
     
             Route currentRoute = routingTable.get(destinationIP);
     
-            // Se a rota não existe ou a nova métrica é menor, atualize a rota
             if (currentRoute == null || currentRoute.metric > receivedMetric) {
                 routingTable.put(destinationIP, new Route(destinationIP, receivedMetric, senderIP));
                 tableUpdated = true;
             }
         }
     
-        // Atualize o tempo da rota do roteador que enviou a mensagem
         if (routingTable.containsKey(senderIP)) {
             routingTable.get(senderIP).updateTimestamp();
         }
     
-        // Remove rotas que não foram divulgadas nesta atualização
         Iterator<Map.Entry<String, Route>> iterator = routingTable.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<String, Route> entry = iterator.next();
             String destinationIP = entry.getKey();
     
-            // Se o IP de destino não está nos IPs recebidos e não é um vizinho direto, remova a rota
             if (!receivedDestinations.contains(destinationIP) && !neighbors.contains(destinationIP)) {
                 iterator.remove();
-                System.out.println("Route removed due to missing announcement: " + destinationIP);
+                System.out.println("Rota removida por falta de anuncio: " + destinationIP);
                 tableUpdated = true;
             }
         }
     
-        // Envia a tabela atualizada para os vizinhos se houver mudança
         if (tableUpdated) {
-            System.out.println("Routing table updated. Sending new table to neighbors.");
+            System.out.println("Tabela de rota atualizada. Mandando nova tabela para os vizinhos.");
             messageSender.sendRoutingTable(routingTable, neighbors.toArray(new String[0]), ipAddress);
         }
     } 
@@ -112,9 +103,9 @@ public class Router {
     public void addNewRouter(String newRouterIP) {
         if (!routingTable.containsKey(newRouterIP)) {
             routingTable.put(newRouterIP, new Route(newRouterIP, 1, newRouterIP));
-            System.out.println("Added new router with IP: " + newRouterIP + " to routing table.");
+            System.out.println("Adicionando nova rota do IP: " + newRouterIP + " para a tabela de rotas.");
             updateNeighborsFile(newRouterIP);
-            sendRoutingUpdateToNeighbors(); // Propaga a tabela atualizada
+            sendRoutingUpdateToNeighbors(); 
         }
     }
     
@@ -123,16 +114,14 @@ public class Router {
     }
 
     public void processUserMessage(String message) {
-        // Verifica se a mensagem está no formato correto
         if (!message.startsWith("!")) {
-            System.out.println("Formato de mensagem inválido. Deve começar com '!'");
+            System.out.println("Formato de mensagem invalido. Deve comecar com '!'");
             return;
         }
     
-        // Divide a mensagem em suas partes
-        String[] parts = message.substring(1).split(";", 3); // Limita o split para evitar problemas com ';' na mensagem
+        String[] parts = message.substring(1).split(";", 3);
         if (parts.length < 3) {
-            System.out.println("Formato de mensagem inválido. Deve seguir o formato !<ip_origem>;<ip_destino>;<mensagem>");
+            System.out.println("Formato de mensagem invalido. Deve seguir o formato !<ip_origem>;<ip_destino>;<mensagem>");
             return;
         }
     
@@ -140,7 +129,6 @@ public class Router {
         String destinationIP = parts[1];
         String text = parts[2];
     
-        // Envia a mensagem usando a tabela de roteamento
         sendTextMessage(originIP, destinationIP, text);
     }
 
@@ -164,10 +152,9 @@ public class Router {
             System.out.println("Texto: " + text);
             Route route = routingTable.get(destinationIP);
             if (route != null) {
-                // Encaminha a mensagem para o próximo salto com os parâmetros na ordem correta
                 messageSender.sendTextMessage(route.outputIP, originIP, destinationIP, text);
             } else {
-                System.out.println("Nenhuma rota encontrada para " + destinationIP + ". Não foi possível encaminhar a mensagem.");
+                System.out.println("Nenhuma rota encontrada para " + destinationIP + ". Nao foi possível encaminhar a mensagem.");
             }
         }
     }
@@ -180,13 +167,11 @@ public class Router {
             String destinationIP = entry.getKey();
             Route route = entry.getValue();
     
-            // Calcula o tempo decorrido desde a última atualização
             long timeElapsed = route.timeElapsed();
             long timeRemaining = 35 - timeElapsed;
     
-            // Verifica se o tempo de inatividade excedeu 35 segundos
             if (timeElapsed > 35) {
-                System.out.println("Route to " + destinationIP + " removed due to inactivity of next hop: " + route.outputIP);
+                System.out.println("Rota para " + destinationIP + " removida devido inatividade: " + route.outputIP);
                 iterator.remove();
             }
         }
@@ -195,7 +180,6 @@ public class Router {
     public void sendTextMessage(String originIP, String destinationIP, String text) {
         Route route = routingTable.get(destinationIP);
         if (route != null) {
-            // Envia a mensagem para o próximo salto
             messageSender.sendTextMessage(route.outputIP, originIP, destinationIP, text);
             System.out.println("Mensagem enviada de " + originIP + " para " + destinationIP + " via " + route.outputIP);
         } else {
@@ -205,7 +189,6 @@ public class Router {
     
     public static void main(String[] args) {
         try {
-            // Verifica se o IP foi fornecido como argumento
             if (args.length < 1) {
                 System.out.println("Uso: java Router <seu_ip>");
                 return;
@@ -215,11 +198,10 @@ public class Router {
             Router router = new Router(ownIP, "roteadores.txt");
             router.start();
     
-            // Inicia a thread para lidar com a entrada do usuário
             new Thread(new UserInputHandler(router)).start();
     
         } catch (IOException e) {
-            System.out.println("Failed to initialize router.");
+            System.out.println("Falha ao inicializar o roteador.");
         }
     }
 }
