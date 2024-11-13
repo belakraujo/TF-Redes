@@ -11,10 +11,10 @@ public class UserInputHandler implements Runnable {
         Scanner scanner = new Scanner(System.in);
 
         while (true) {
-            System.out.println("Digite a mensagem no formato !<ip_origem>;<ip_destino>;<mensagem> (ou 'sair' para encerrar):");
+            System.out.println("Digite a mensagem no formato !<ip_origem>;<ip_destino>;<mensagem> (ou 'sair' para encerrar): \n");
             String inputMessage = scanner.nextLine();
             if (inputMessage.equalsIgnoreCase("sair")) {
-                System.out.println("Encerrando o roteador.");
+                System.out.println("Encerrando o roteador. \n");
                 System.exit(0);
             }
 

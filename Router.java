@@ -39,9 +39,9 @@ public class Router {
                 writer.write(newRouterIP);
                 writer.newLine();
                 neighbors.add(newRouterIP);
-                System.out.println("roteadores.txt updated como IP do novo roteador: " + newRouterIP);
+                System.out.println("roteadores.txt updated como IP do novo roteador: " + newRouterIP + "\n");
             } catch (IOException e) {
-                System.out.println("Erro updating roteadores.txt: " + e.getMessage());
+                System.out.println("Erro updating roteadores.txt: " + e.getMessage() + "\n");
             }
         }
     }    
@@ -58,7 +58,7 @@ public class Router {
     
     public void updateRoutingTable(String message, String senderIP) {
 
-        System.out.println("Tabela recebida do vizinho " + senderIP);
+        System.out.println("Tabela recebida do vizinho " + senderIP + "\n");
 
         String[] routes = message.split("@");
         boolean tableUpdated = false;
@@ -92,13 +92,13 @@ public class Router {
     
             if (!receivedDestinations.contains(destinationIP) && !neighbors.contains(destinationIP)) {
                 iterator.remove();
-                System.out.println("Rota removida por falta de anuncio: " + destinationIP);
+                System.out.println("Rota removida por falta de anuncio: " + destinationIP + "\n");
                 tableUpdated = true;
             }
         }
     
         if (tableUpdated) {
-            System.out.println("Tabela de rota atualizada. Mandando nova tabela para os vizinhos.");
+            System.out.println("Tabela de rota atualizada. Mandando nova tabela para os vizinhos. \n");
             messageSender.sendRoutingTable(routingTable, neighbors.toArray(new String[0]), ipAddress);
         }
     } 
@@ -106,7 +106,7 @@ public class Router {
     public void addNewRouter(String newRouterIP) {
         if (!routingTable.containsKey(newRouterIP)) {
             routingTable.put(newRouterIP, new Route(newRouterIP, 1, newRouterIP));
-            System.out.println("Adicionando nova rota do IP: " + newRouterIP + " para a tabela de rotas.");
+            System.out.println("Adicionando nova rota do IP: " + newRouterIP + " para a tabela de rotas. \n");
             updateNeighborsFile(newRouterIP);
             sendRoutingUpdateToNeighbors(); 
         }
@@ -118,13 +118,13 @@ public class Router {
 
     public void processUserMessage(String message) {
         if (!message.startsWith("!")) {
-            System.out.println("Formato de mensagem invalido. Deve comecar com '!'");
+            System.out.println("Formato de mensagem invalido. Deve comecar com '!' \n");
             return;
         }
     
         String[] parts = message.substring(1).split(";", 3);
         if (parts.length < 3) {
-            System.out.println("Formato de mensagem invalido. Deve seguir o formato !<ip_origem>;<ip_destino>;<mensagem>");
+            System.out.println("Formato de mensagem invalido. Deve seguir o formato !<ip_origem>;<ip_destino>;<mensagem> \n");
             return;
         }
     
@@ -143,21 +143,21 @@ public class Router {
         String text = parts[2];
     
         if (destinationIP.equals(ipAddress)) {
-            System.out.println("Mensagem recebida:");
-            System.out.println("Origem: " + originIP);
-            System.out.println("Destino: " + destinationIP);
-            System.out.println("Texto: " + text);
-            System.out.println("A mensagem chegou ao destino.");
+            System.out.println("Mensagem recebida: \n");
+            System.out.println("Origem: " + originIP + "\n");
+            System.out.println("Destino: " + destinationIP + "\n");
+            System.out.println("Texto: " + text + "\n");
+            System.out.println("A mensagem chegou ao destino. \n");
         } else {
-            System.out.println("Encaminhando mensagem:");
-            System.out.println("Origem: " + originIP);
-            System.out.println("Destino: " + destinationIP);
-            System.out.println("Texto: " + text);
+            System.out.println("Encaminhando mensagem:  \n");
+            System.out.println("Origem: " + originIP + "\n");
+            System.out.println("Destino: " + destinationIP + "\n");
+            System.out.println("Texto: " + text + "\n");
             Route route = routingTable.get(destinationIP);
             if (route != null) {
                 messageSender.sendTextMessage(route.outputIP, originIP, destinationIP, text);
             } else {
-                System.out.println("Nenhuma rota encontrada para " + destinationIP + ". Nao foi possível encaminhar a mensagem.");
+                System.out.println("Nenhuma rota encontrada para " + destinationIP + ". Nao foi possível encaminhar a mensagem. \n");
             }
         }
     }
@@ -184,16 +184,16 @@ public class Router {
         Route route = routingTable.get(destinationIP);
         if (route != null) {
             messageSender.sendTextMessage(route.outputIP, originIP, destinationIP, text);
-            System.out.println("Mensagem enviada de " + originIP + " para " + destinationIP + " via " + route.outputIP);
+            System.out.println("Mensagem enviada de " + originIP + " para " + destinationIP + " via " + route.outputIP + "\n");
         } else {
-            System.out.println("Nenhuma rota encontrada para " + destinationIP);
+            System.out.println("Nenhuma rota encontrada para " + destinationIP + ". Nao foi possível enviar a mensagem. \n");
         }
     }
     
     public static void main(String[] args) {
         try {
             if (args.length < 1) {
-                System.out.println("Uso: java Router <seu_ip>");
+                System.out.println("Uso: java Router <seu_ip>" + "\n");
                 return;
             }
     
@@ -204,7 +204,7 @@ public class Router {
             new Thread(new UserInputHandler(router)).start();
     
         } catch (IOException e) {
-            System.out.println("Falha ao inicializar o roteador.");
+            System.out.println("Falha ao inicializar o roteador. \n");
         }
     }
 }

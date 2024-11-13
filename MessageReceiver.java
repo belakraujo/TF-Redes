@@ -20,9 +20,9 @@ class MessageReceiver implements Runnable {
                 String message = new String(packet.getData(), 0, packet.getLength());
                 String senderIP = packet.getAddress().getHostAddress();
                 handleReceivedMessage(message, senderIP);
-                System.out.println("Recebido o Pacote");
+                System.out.println("Recebido o Pacote \n");
             } catch (IOException e) {
-                System.out.println("Falha ao receber o pacote.");
+                System.out.println("Falha ao receber o pacote. \n");
             }
         }
     }

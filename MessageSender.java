@@ -22,7 +22,7 @@ class MessageSender {
             }
         }
     
-        System.out.println("Tabela sendo enviada: " + message.toString());
+        System.out.println("Tabela sendo enviada: " + message.toString() + "\n");
     
         for (String neighbor : neighbors) {
             sendMessage(message.toString(), neighbor);
@@ -41,9 +41,9 @@ class MessageSender {
             InetAddress address = InetAddress.getByName(destinationIP);
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, 9000);
             socket.send(packet);
-            System.out.println("Enviado o Pacote");
+            System.out.println("Enviado o Pacote \n");
         } catch (IOException e) {
-            System.out.println("Falha ao enviar a mensagem para " + destinationIP);
+            System.out.println("Falha ao enviar a mensagem para " + destinationIP + " \n");
         }
     }
 
@@ -54,6 +54,6 @@ class MessageSender {
             sendMessage(announcementMessage, neighbor);
         }
     
-        System.out.println("Anuncio da rota enviada pra os vizinhos: " + announcementMessage);
+        System.out.println("Anuncio da rota enviada pra os vizinhos: " + announcementMessage + "\n");
     }    
 }
